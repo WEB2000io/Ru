@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InstaWithMe Pro</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+    h1 {
+      text-align: center;
+      color: #e91e63;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+      color: #000;
+    }
+    body.dark .card {
+      background: #1e1e1e;
+      color: #f0f0f0;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .copy, .share, .save, .download {
+      position: absolute;
+      top: 15px;
+      background-color: #e91e63;
+      color: white;
+      right: 10px;
+      margin-left: 5px;
+    }
+    .generator input, .generator select {
+      padding: 10px;
+      margin: 5px;
+      width: 80%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .generator {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .toggle-dark {
+      background: #333;
+      color: #fff;
+    }
+    .favorites {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button class="toggle-dark" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <select id="langSelect" onchange="switchLang()">
+      <option value="en">English</option>
+      <option value="hi">Hindi</option>
+    </select>
+  </div>
+
+  <h1 id="title">InstaWithMe Pro</h1>
+
+  <div class="generator">
+    <input type="text" id="videoInput" placeholder="Describe your video here..." />
+    <select id="videoType">
+      <option value="funny">Funny</option>
+      <option value="love">Love</option>
+      <option value="sad">Sad</option>
+      <option value="motivational">Motivational</option>
+      <option value="dance">Dance</option>
+      <option value="emotional">Emotional</option>
+      <option value="travel">Travel</option>
+      <option value="food">Food</option>
+    </select><br/>
+    <button onclick="generateContent()">Generate</button>
+    <button onclick="downloadTxt()">Download .txt</button>
+  </div>
+
+  <div id="generatedResult"></div>
+
+  <div class="favorites">
+    <h3>Saved Favorites</h3>
+    <ul id="favoritesList"></ul>
+  </div>
+
+  <script>
+    const data = {
+      funny: {
+        en: { caption: "Still laughing at this! Must watch till the end!", hashtags: "#funnyreels #comedyclip #reellol", song: "Benny Hill Theme Remix" },
+        hi: { caption: "इस वीडियो पर अभी भी हँसी आ रही है! आखिर तक देखें!", hashtags: "#funnyreels #हास्य #मज़ेदार", song: "Benny Hill Theme Remix" }
+      },
+      love: {
+        en: { caption: "Just a love story in 15 seconds…", hashtags: "#lovestory #couplegoals #romanticvibes", song: "Heeriye - Arijit Singh" },
+        hi: { caption: "सिर्फ़ 15 सेकंड में एक प्रेम कहानी…", hashtags: "#प्रेमकहानी #जोड़ी #रोमांटिक", song: "Heeriye - अरिजीत सिंह" }
+      },
+      // More categories can be filled similarly...
+    };
+    let lang = "en";
+    let counter = 0;
+
+    function switchLang() {
+      lang = document.getElementById("langSelect").value;
+    }
+
+    function generateContent() {
+      const type = document.getElementById("videoType").value;
+      const input = document.getElementById("videoInput").value.trim();
+      const result = data[type][lang];
+      counter++;
+
+      document.getElementById("generatedResult").innerHTML = `
+        <div class="card">
+          <strong>Caption:</strong> ${result.caption}
+          <button class="copy" onclick="copyText(this)">Copy</button>
+          <button class="save" onclick="saveFavorite('${result.caption}')">Save</button>
+          <button class="share" onclick="share('${result.caption}')">Share</button>
+        </div>
+        <div class="card">
+          <strong>Hashtags:</strong> ${result.hashtags}
+          <button class="copy" onclick="copyText(this)">Copy</button>
+          <button class="save" onclick="saveFavorite('${result.hashtags}')">Save</button>
+        </div>
+        <div class="card">
+          <strong>Song:</strong> ${result.song}
+          <button class="copy" onclick="copyText(this)">Copy</button>
+        </div>
+        <div class="card"><strong>Times Used:</strong> ${counter}</div>
+      `;
+    }
+
+    function copyText(btn) {
+      const text = btn.parentElement.textContent.replace(/(Copy|Save|Share)/g, "").trim();
+      navigator.clipboard.writeText(text);
+      btn.innerText = "Copied!";
+      setTimeout(() => (btn.innerText = "Copy"), 1000);
+    }
+
+    function saveFavorite(text) {
+      const li = document.createElement("li");
+      li.textContent = text;
+      document.getElementById("favoritesList").appendChild(li);
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    function share(text) {
+      const url = `https://www.instagram.com/?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+    }
+
+    function downloadTxt() {
+      const content = document.getElementById("generatedResult").innerText;
+      const blob = new Blob([content], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "instawithme_caption.txt";
+      a.click();
+    }
+  </script>
+</body>
+</html>
